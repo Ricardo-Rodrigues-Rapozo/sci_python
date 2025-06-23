@@ -8,17 +8,18 @@
 
 volatile Protocol_Header_t g_prot_header = {CMD_NONE,0};
 volatile int g_dado;
-
+#define MAX_ELEMENTOS 512
+uint16_t vect[MAX_ELEMENTOS]; // buffer global seguro
 //
 // Função Principal
 //
 void main(void)
 {
     // Inicialização do dispositivo
-    Device_init();
-    Interrupt_initModule();
-    Interrupt_initVectorTable();
-    Board_init();
+    Device_init(); // define clock
+    Interrupt_initModule();// inicializa int e a tabela de inte
+    Interrupt_initVectorTable();//
+    Board_init(); // so chama
 
     // Habilita interrupções globais e de tempo real
     EINT;
@@ -31,11 +32,11 @@ void main(void)
             switch (g_prot_header.cmd)
             {
                 case CMD_RECEIVE_INT:
-                    g_dado = protocolReceiveInt(SCI0_BASE);
+                   protocolReceiveInt(SCI0_BASE, vect, MAX_ELEMENTOS);
                     break;
 
                 case CMD_SEND_INT:
-                    protocolSendInt(SCI0_BASE, g_dado);
+                    protocolSendInt(SCI0_BASE, vect, MAX_ELEMENTOS);
                     break;
             }
 

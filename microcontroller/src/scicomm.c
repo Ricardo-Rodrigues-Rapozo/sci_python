@@ -8,19 +8,26 @@
 #include "device.h"
 #include "scicomm.h"
 
-
-int protocolReceiveInt(unsigned int sci_base)
+void protocolReceiveInt(unsigned int sci_base, uint16_t *vect, unsigned int MAX_ELEMENTOS)
 {
     uint16_t buffer[INT_SIZE];
-    SCI_readCharArray(sci_base, buffer, INT_SIZE);
-    return (buffer[0] | (buffer[1] << 8U));
+    for(int i = 0; i < MAX_ELEMENTOS; i++)
+    {
+        SCI_readCharArray(sci_base, buffer, INT_SIZE);
+        vect[i] = (buffer[0] | (buffer[1] << 8U)); //Isso junta os dois bytes em um único int16_t (little endian)
+    //*vect passando como ponteiro eu não preciso passar como parametro
+    }
 }
 
-void protocolSendInt(unsigned int sci_base,int data)
+void protocolSendInt(unsigned int sci_base, uint16_t *vect, unsigned int MAX_ELEMENTOS)
 {
     uint16_t txBuf[INT_SIZE];
-    txBuf[0] = (uint16_t)(data & 0x00FF);
-    txBuf[1] = (uint16_t)((data >> 8U) & 0x00FF);
-
+    for(int i = 0; i < MAX_ELEMENTOS; i++)
+    {
+    txBuf[0] = (uint16_t)(vect[i] & 0x00FF);//Isso pega os 8 bits menos significativos do número.
+    txBuf[1] = (uint16_t)((vect[i] >> 8U) & 0x00FF);//Aqui ele desloca 8 bits para a direita (ou seja, pega a parte alta)
     SCI_writeCharArray(sci_base, txBuf, INT_SIZE);
+
+    }
+    //SCI_writeCharArray(sci_base, txBuf, INT_SIZE);
 }

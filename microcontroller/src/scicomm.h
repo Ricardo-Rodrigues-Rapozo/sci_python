@@ -28,9 +28,8 @@ typedef struct
 
 } Protocol_Header_t;
 
-
-int protocolReceiveInt(unsigned int sci_base);
-void protocolSendInt(unsigned int sci_base,int data);
+void protocolReceiveInt(unsigned int sci_base, uint16_t *vect,unsigned int max_elementos);
+void protocolSendInt(unsigned int sci_base, uint16_t *vect, unsigned int max_elementos);
 
 
 

@@ -26,7 +26,7 @@ GEN_FILES += \
 ./syscfg/c2000ware_libraries.c 
 
 GEN_MISC_DIRS += \
-./syscfg 
+./syscfg/ 
 
 C_DEPS += \
 ./main.d \
@@ -52,7 +52,7 @@ GEN_MISC_FILES += \
 ./syscfg/clocktree.h 
 
 GEN_MISC_DIRS__QUOTED += \
-"syscfg" 
+"syscfg\" 
 
 OBJS__QUOTED += \
 "main.obj" \

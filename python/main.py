@@ -1,11 +1,15 @@
 import serial
 import struct
 import time
+import numpy as np
+from signal_teste import gerar_sinal
+import matplotlib.pyplot as plt 
 
 # --- CONFIGURACOES ---
 # Altere esta para a porta COM correta do seu microcontrolador
-SERIAL_PORT = 'COM4'
+SERIAL_PORT = 'COM6'
 BAUD_RATE = 115200
+print(serial.__file__)
 
 # --- DEFINICOES DO PROTOCOLO (devem ser identicas as do C) ---
 # Comandos (do enum SCI_Command_e)
@@ -27,14 +31,24 @@ def main():
                 print("\n----- MENU -----")
                 print("1. Enviar um numero inteiro para o 28379D")
                 print("2. Receber um numero inteiro do 28379D")
+                print("3. Enviar um vetor de inteiros")
+                print("4. Receber um vetor de inteiros")
                 print("0. Sair")
                 
                 choice = input("Escolha uma opcao: ")
 
                 if choice == '1':
                     send_int(ser)
+
                 elif choice == '2':
                     receive_int(ser)
+
+                elif choice =='3':
+                    send_vect(ser)
+
+                elif choice =='4':
+                    receive_vect(ser)
+
                 elif choice == '0':
                     print("Encerrando o programa.")
                     break
@@ -51,9 +65,9 @@ def send_int(ser_connection):
     Pede um numero ao usuario, o empacota e envia para o microcontrolador.
     """
     try:
-        num_str = input("Digite um numero inteiro para ENVIAR (entre -32768 e 32767): ")
+        num_str = input("Digite um numero inteiro para ENVIAR (entre -32768 e 32767): ") 
         number_to_send = int(num_str)
-
+        print(f"tamanho do numero: {number_to_send.bit_length()}")
         if not -32768 <= number_to_send <= 32767:
             print("ERRO: O numero esta fora do range permitido para um int16_t.")
             return
@@ -70,6 +84,30 @@ def send_int(ser_connection):
         print("ERRO: Entrada invalida. Por favor, digite um numero inteiro.")
     except Exception as e:
         print(f"Ocorreu um erro inesperado: {e}")
+
+def send_vect(ser_connection):
+    """
+    Gera um vetor de sinal e envia para o microcontrolador.
+    """
+    try:
+        vetor = gerar_sinal()
+        tamanho_bytes = len(vetor) * 2  # Cada int16 ocupa 2 bytes
+
+        # Header: comando + tamanho do payload em bytes
+        header = struct.pack('<Bh', CMD_RECEIVE_INT, tamanho_bytes)
+
+        # Payload: vetor de 512 inteiros de 16 bits
+        payload = struct.pack(f'<{len(vetor)}h', *vetor)
+
+        packet_to_send = header + payload
+
+        print(f"\nEnviando vetor com {len(vetor)} valores (total: {len(packet_to_send)} bytes)")
+        ser_connection.write(packet_to_send)
+        print("Vetor enviado com sucesso.")
+
+    except Exception as e:
+        print(f"Ocorreu um erro inesperado ao enviar vetor: {e}")
+
 
 def receive_int(ser_connection):
     """
@@ -97,10 +135,57 @@ def receive_int(ser_connection):
         #    Formato: '<' (Little-endian), 'h' (short, para o int16)
         received_number = struct.unpack('<h', response_data)[0]
 
-        print(f"  -> Numero recebido do 28379D: {received_number}")
+        print(f"  -> Numero recebido do 28379D: {received_number}, tamanho em bits do num: {received_number.bit_length()}")
 
     except Exception as e:
         print(f"Ocorreu um erro inesperado: {e}")
 
+def receive_vect(ser_connection):
+    try:
+        # 1. Cria o pacote de comando:
+        #    - '<'  → little-endian
+        #    - 'B'  → 1 byte para o comando (CMD_SEND_INT)
+        #    - 'h'  → 2 bytes para o tamanho dos dados (0 nesse caso)
+        #    O pacote resultante tem 3 bytes: [comando, 0x00, 0x00]
+        request_packet = struct.pack('<Bh', CMD_SEND_INT, 0)
+
+        # Envia o pacote pela porta serial para o microcontrolador
+        ser_connection.write(request_packet)
+
+        # 2. Aguarda a resposta: 512 inteiros de 16 bits (int16_t), ou seja, 1024 bytes
+        response_data = ser_connection.read(2 * 512)
+
+        # Limpa qualquer lixo que sobrou no buffer da serial
+        ser_connection.flushInput()
+
+        # Verifica se recebeu todos os dados esperados
+        if len(response_data) < 2 * 512:
+            print("Erro: Dados incompletos recebidos.")
+            return []
+
+        # 3. Converte os 1024 bytes recebidos em 512 inteiros com sinal (int16)
+        #    - '<512h' → little-endian, 512 valores do tipo short (int16_t)
+        received_number = list(struct.unpack('<512h', response_data))
+
+        # 4. Plota o vetor recebido como uma curva (útil para sinais)
+        plt.plot(received_number)
+        plt.title("Vetor Recebido do 28379D")
+        plt.xlabel("Índice")
+        plt.ylabel("Valor")
+        plt.grid(True)
+        plt.show()
+
+        # 5. Retorna o vetor convertido para uso no restante do programa
+        return received_number
+
+    except Exception as e:
+        # Captura e exibe qualquer erro ocorrido durante a execução
+        print("Erro ao receber vetor:", e)
+        return []
+    except Exception as e:
+        print("Erro ao receber vetor:", e)
+        return []
+    
 if __name__ == "__main__":
     main()
+
