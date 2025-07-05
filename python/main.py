@@ -2,7 +2,7 @@ import serial
 import struct
 import time
 import numpy as np
-from signal_teste import gerar_sinal
+from signal_teste import  gerar_sinal_com_harmonicas
 import matplotlib.pyplot as plt 
 
 # --- CONFIGURACOES ---
@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 SERIAL_PORT = 'COM6'
 BAUD_RATE = 115200
 print(serial.__file__)
-
+Tam_vect = 1000
+amostragemADC = 200000000 / 8000
 # --- DEFINICOES DO PROTOCOLO (devem ser identicas as do C) ---
 # Comandos (do enum SCI_Command_e)
 CMD_RECEIVE_INT = 1 # Comando para o PC enviar um int para o 28379D
@@ -69,7 +70,7 @@ def send_int(ser_connection):
         number_to_send = int(num_str)
         print(f"tamanho do numero: {number_to_send.bit_length()}")
         if not -32768 <= number_to_send <= 32767:
-            print("ERRO: O numero esta fora do range permitido para um int16_t.")
+            print("ERRO: O numero esta fora do range permit3ido para um int16_t.")
             return
 
         # Empacota o COMANDO e o DADO em uma sequencia de bytes.
@@ -90,13 +91,16 @@ def send_vect(ser_connection):
     Gera um vetor de sinal e envia para o microcontrolador.
     """
     try:
-        vetor = gerar_sinal()
+        #vetor = gerar_sinal()
+        #vetor = gerar_sinal_200hz()
+        #vetor = gerar_sinal_com_ciclos()
+        vetor = gerar_sinal_com_harmonicas()
         tamanho_bytes = len(vetor) * 2  # Cada int16 ocupa 2 bytes
 
         # Header: comando + tamanho do payload em bytes
         header = struct.pack('<Bh', CMD_RECEIVE_INT, tamanho_bytes)
 
-        # Payload: vetor de 512 inteiros de 16 bits
+        # Payload: vetor de Tam_vect inteiros de 16 bits Tam_vect 
         payload = struct.pack(f'<{len(vetor)}h', *vetor)
 
         packet_to_send = header + payload
@@ -152,21 +156,20 @@ def receive_vect(ser_connection):
         # Envia o pacote pela porta serial para o microcontrolador
         ser_connection.write(request_packet)
 
-        # 2. Aguarda a resposta: 512 inteiros de 16 bits (int16_t), ou seja, 1024 bytes
-        response_data = ser_connection.read(2 * 512)
+        # 2. Aguarda a resposta: Tam_vect inteiros de 16 bits (int16_t), ou seja, 1024 bytes
+        response_data = ser_connection.read(2 * 500)
 
         # Limpa qualquer lixo que sobrou no buffer da serial
         ser_connection.flushInput()
 
         # Verifica se recebeu todos os dados esperados
-        if len(response_data) < 2 * 512:
+        if len(response_data) < 2 * 500:
             print("Erro: Dados incompletos recebidos.")
             return []
-
-        # 3. Converte os 1024 bytes recebidos em 512 inteiros com sinal (int16)
-        #    - '<512h' → little-endian, 512 valores do tipo short (int16_t)
-        received_number = list(struct.unpack('<512h', response_data))
-
+        
+        # 3. Converte os 1024 bytes recebidos em Tam_vect inteiros com sinal (int16)
+        #    - '<Tam_vecth' → little-endian, Tam_vect valores do tipo short (int16_t)
+        received_number = list(struct.unpack('<500h', response_data))
         # 4. Plota o vetor recebido como uma curva (útil para sinais)
         plt.plot(received_number)
         plt.title("Vetor Recebido do 28379D")
@@ -174,8 +177,10 @@ def receive_vect(ser_connection):
         plt.ylabel("Valor")
         plt.grid(True)
         plt.show()
+        calcular_fft(received_number, amostragemADC)
 
         # 5. Retorna o vetor convertido para uso no restante do programa
+
         return received_number
 
     except Exception as e:
@@ -185,7 +190,34 @@ def receive_vect(ser_connection):
     except Exception as e:
         print("Erro ao receber vetor:", e)
         return []
+  
+def calcular_fft(sinal, f_amostragem):
+    N = len(sinal)
+    sinal = sinal - np.mean(sinal)
+    fft_resultado = np.fft.fft(sinal)  # Mantém a componente DC original
+    fft_magnitude = np.abs(fft_resultado) / N  # Normalização clássica
+    fft_magnitude = fft_magnitude[:N // 2] * 2  # Espectro unilateral (exceto DC)
+    fft_magnitude[0] = fft_magnitude[0] / 2  # Corrige a magnitude do bin DC (opcional)
     
+    frequencias = np.fft.fftfreq(N, d=1/f_amostragem)[:N // 2]
+    
+    # Plot com stem (barras verticais)
+    plt.figure(figsize=(10, 4))
+    plt.stem(frequencias, fft_magnitude, markerfmt='C0o', linefmt='C0-', basefmt='C7-')
+    plt.title("FFT do Sinal (com componente DC)")
+    plt.xlabel("Frequência (Hz)")
+    plt.ylabel("Magnitude")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    return frequencias, fft_magnitude
+
+def calcular_alias(f_original, f_amostragem):
+    f_nyquist = f_amostragem / 2
+    n = round(f_original / f_amostragem)
+    print( "componente com alias",abs(f_original - n * f_amostragem))
+
 if __name__ == "__main__":
     main()
 
