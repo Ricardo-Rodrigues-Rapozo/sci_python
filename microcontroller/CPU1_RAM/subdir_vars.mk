@@ -26,7 +26,7 @@ GEN_FILES += \
 ./syscfg/c2000ware_libraries.c 
 
 GEN_MISC_DIRS += \
-./syscfg/ 
+./syscfg 
 
 C_DEPS += \
 ./main.d \
@@ -47,12 +47,13 @@ GEN_MISC_FILES += \
 ./syscfg/board.cmd.genlibs \
 ./syscfg/board.json \
 ./syscfg/pinmux.csv \
+./syscfg/adc.dot \
 ./syscfg/c2000ware_libraries.cmd.genlibs \
 ./syscfg/c2000ware_libraries.h \
 ./syscfg/clocktree.h 
 
 GEN_MISC_DIRS__QUOTED += \
-"syscfg\" 
+"syscfg" 
 
 OBJS__QUOTED += \
 "main.obj" \
@@ -64,6 +65,7 @@ GEN_MISC_FILES__QUOTED += \
 "syscfg\board.cmd.genlibs" \
 "syscfg\board.json" \
 "syscfg\pinmux.csv" \
+"syscfg\adc.dot" \
 "syscfg\c2000ware_libraries.cmd.genlibs" \
 "syscfg\c2000ware_libraries.h" \
 "syscfg\clocktree.h" 

@@ -126,6 +126,7 @@ SECTIONS
         PUTREADIDX :   TYPE = DSECT
     }
 
+   .memoria1 : > RAMGS0, PAGE = 1
     /* The following section definition are for SDFM examples */
    Filter1_RegsFile : > RAMGS1, PAGE = 1, fill=0x1111
    Filter2_RegsFile : > RAMGS2, PAGE = 1, fill=0x2222

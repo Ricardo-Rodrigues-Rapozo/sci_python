@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.2.LTS
+CG_TOOL_ROOT := C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS
 
 GEN_OPTS__FLAG := --cmd_file="syscfg/board.opt" --cmd_file="syscfg/c2000ware_libraries.opt" 
 GEN_CMDS__FLAG := 
@@ -130,10 +130,10 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-sci_python.out \
+sci_python.out 
 
 EXE_OUTPUTS__QUOTED += \
-"sci_python.out" \
+"sci_python.out" 
 
 
 # All Target
@@ -144,7 +144,7 @@ all: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
 sci_python.out: $(OBJS) $(CMD_SRCS) $(LIB_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: C2000 Linker'
-	"C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.2.LTS/bin/cl2000" -v28 -ml -mt --cla_support=cla2 --float_support=fpu32 --tmu_support=tmu0 --vcu_support=vcu2 -Ooff --define=_LAUNCHXL_F28379D --define=DEBUG --define=CPU1 --define=RAM --c99 --diag_suppress=10063 --diag_warning=225 --diag_wrap=off --display_error_number --gen_func_subsections=on --abi=eabi -z -m"sci_python.map" --heap_size=0x100 --stack_size=0x200 --warn_sections -i"C:/Users/Ricardo/Documents/DSP_UFJF/sci_python/microcontroller/src" -i"C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.2.LTS/lib" -i"C:/ti/c2000/C2000Ware_5_04_00_00" -i"C:/Users/Ricardo/Documents/DSP_UFJF/sci_python/microcontroller/CPU1_RAM/syscfg" -i"C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.2.LTS/include" --reread_libs --define=RAM --diag_wrap=off --display_error_number --xml_link_info="sci_python_linkInfo.xml" --entry_point=code_start --rom_model -o "sci_python.out" $(ORDERED_OBJS)
+	"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/bin/cl2000" -v28 -ml -mt --cla_support=cla2 --float_support=fpu32 --tmu_support=tmu0 --vcu_support=vcu2 -Ooff --define=_LAUNCHXL_F28379D --define=DEBUG --define=CPU1 --define=RAM --c99 --diag_suppress=10063 --diag_warning=225 --diag_wrap=off --display_error_number --gen_func_subsections=on --abi=eabi -z -m"sci_python.map" --heap_size=0x100 --stack_size=0x200 --warn_sections -i"C:/Users/Ricardo/Documents/DSP_UFJF_WORKSPACE/sci_python/microcontroller/src" -i"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/lib" -i"C:/ti/c2000/C2000Ware_5_04_00_00" -i"C:/Users/Ricardo/Documents/DSP_UFJF_WORKSPACE/sci_python/microcontroller/CPU1_RAM/syscfg" -i"C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-c2000_22.6.1.LTS/include" --reread_libs --define=RAM --diag_wrap=off --display_error_number --xml_link_info="sci_python_linkInfo.xml" --entry_point=code_start --rom_model -o "sci_python.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
